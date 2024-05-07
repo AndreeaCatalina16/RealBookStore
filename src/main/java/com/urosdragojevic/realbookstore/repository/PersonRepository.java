@@ -2,6 +2,7 @@ package com.urosdragojevic.realbookstore.repository;
 
 import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.Person;
+import com.urosdragojevic.realbookstore.audit.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -33,7 +34,7 @@ public class PersonRepository {
                 personList.add(createPersonFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error("Failed to load from table persons");
         }
         return personList;
     }
@@ -48,6 +49,8 @@ public class PersonRepository {
             while (rs.next()) {
                 personList.add(createPersonFromResultSet(rs));
             }
+        } catch (Exception ex) {
+            LOG.error("Person search failed for search term: {}", searchTerm, ex);
         }
         return personList;
     }
@@ -60,10 +63,11 @@ public class PersonRepository {
             while (rs.next()) {
                 return createPersonFromResultSet(rs);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+            auditLogger.audit("Retrieved person with id:" + personId);
 
+        } catch (SQLException e) {
+            LOG.warn("Person search failed for id: {}", personId, e);
+        }
         return null;
     }
 
@@ -73,8 +77,11 @@ public class PersonRepository {
              Statement statement = connection.createStatement();
         ) {
             statement.executeUpdate(query);
+
+            auditLogger.audit("Deleted person with id: " + personId);
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.warn("Failed to delete person with id: {}", personId, e);
         }
     }
 
@@ -98,8 +105,13 @@ public class PersonRepository {
             statement.setString(1, firstName);
             statement.setString(2, email);
             statement.executeUpdate();
+
+            if (!personUpdate.getFirstName().equals(personFromDb.getFirstName()) || !personUpdate.getEmail().equals(personFromDb.getEmail())) {
+                auditLogger.auditChange(new Entity("UpdatePerson", String.valueOf(personFromDb.getId()), personFromDb.toString(), personUpdate.toString()));
+
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+                LOG.error("Failed update of user with id: {}", personUpdate.getId(), e);
         }
     }
 }

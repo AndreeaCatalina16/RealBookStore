@@ -1,5 +1,6 @@
 package com.urosdragojevic.realbookstore.repository;
 
+import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,8 @@ import java.sql.Statement;
 public class UserRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserRepository.class);
+    private static final AuditLogger auditLogger = AuditLogger.getAuditLogger(UserRepository.class);
+
 
     private DataSource dataSource;
 
@@ -35,6 +38,7 @@ public class UserRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            LOG.warn("Failed to find the user with the username: {} ", username, e);
         }
         return null;
     }
@@ -46,7 +50,7 @@ public class UserRepository {
              ResultSet rs = statement.executeQuery(query)) {
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error("Failed to validate credentials for user: {}", username, e);
         }
         return false;
     }
@@ -58,7 +62,7 @@ public class UserRepository {
         ) {
             statement.executeUpdate(query);
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error("Failed to delete user with id: {}", userId, e);
         }
     }
 }
