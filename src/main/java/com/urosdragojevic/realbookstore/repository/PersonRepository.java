@@ -50,7 +50,7 @@ public class PersonRepository {
                 personList.add(createPersonFromResultSet(rs));
             }
         } catch (Exception ex) {
-            LOG.error("Person search failed for search term: {}", searchTerm, ex);
+            LOG.warn("Person search failed for search term: {}", searchTerm, ex);
         }
         return personList;
     }
@@ -107,7 +107,7 @@ public class PersonRepository {
             statement.executeUpdate();
 
             if (!personUpdate.getFirstName().equals(personFromDb.getFirstName()) || !personUpdate.getEmail().equals(personFromDb.getEmail())) {
-                auditLogger.auditChange(new Entity("UpdatePerson", String.valueOf(personFromDb.getId()), personFromDb.toString(), personUpdate.toString()));
+                auditLogger.auditChange(new Entity("UpdatePerson", String.valueOf(personFromDb.getId()), String.valueOf(personFromDb), String.valueOf(personUpdate)));
 
             }
         } catch (SQLException e) {

@@ -57,7 +57,7 @@ public class BookRepository {
                 bookList.add(createBookFromResultSet(rs));
             }
         } catch (SQLException ex) {
-            LOG.error("Book search failed for search term = {}", searchTerm, ex);
+            LOG.warn("Book search failed for search term = {}", searchTerm, ex);
         }
         return bookList;
     }

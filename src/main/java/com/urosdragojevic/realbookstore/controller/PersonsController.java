@@ -62,17 +62,19 @@ public class PersonsController {
     @PreAuthorize("hasAuthority('UPDATE_PERSON')")
     public ResponseEntity<Void> person(@PathVariable int id) throws AccessDeniedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User current = (User)authentication.getPrincipal();
+        User current = (User) authentication.getPrincipal();
         if(roleRepository.findByUserId(current.getId()).stream().anyMatch(role ->
                 role.getName().equals("MANAGER") || role.getName().equals("REVIEWER"))) {
-            if (id != current.getId()) {
-                throw new AccessDeniedException("Forbidden");
+            if (id == current.getId()) {
+                personRepository.delete(id);
+                userRepository.delete(id);
             }
         }
 
-
-        personRepository.delete(id);
-        userRepository.delete(id);
+        if(roleRepository.findByUserId(current.getId()).stream().anyMatch(role->role.getName().equals("ADMIN"))) {
+            personRepository.delete(id);
+            userRepository.delete(id);
+        }
 
         return ResponseEntity.noContent().build();
     }
@@ -83,19 +85,23 @@ public class PersonsController {
 
         String csrf = session.getAttribute("CSRF_TOKEN").toString();
         if (!csrf.equals(token)) {
-            throw  new AccessDeniedException("Forbidden");
+            throw new AccessDeniedException("Forbidden");
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User current = (User) authentication.getPrincipal();
+
         if(roleRepository.findByUserId(current.getId()).stream().anyMatch(role ->
                 role.getName().equals("MANAGER") || role.getName().equals("REVIEWER"))) {
-            if (Integer.valueOf(person.getId()) != current.getId()) {
-                throw new AccessDeniedException("Forbidden");
+            if (Integer.valueOf(person.getId()) == current.getId()) {
+                personRepository.update(person);
             }
         }
 
-        personRepository.update(person);
+        if (roleRepository.findByUserId(current.getId()).stream().anyMatch(role->role.getName().equals(person))) {
+            personRepository.update(person);
+        }
+
         return "redirect:/persons/" + person.getId();
     }
 

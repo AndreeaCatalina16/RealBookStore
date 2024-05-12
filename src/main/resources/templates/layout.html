@@ -40,7 +40,7 @@ xmlns:sec="http://www.w3.org/1999/xhtml">
         </ul>
         <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-                <a sec:authorize="hasAuthority('VIEW_MY_RPOFILE')" class="nav-link" th:href="@{/myprofile}">My Profile</a>
+                <a sec:authorize="hasAuthority('VIEW_MY_PROFILE')" class="nav-link" th:href="@{/myprofile}">My Profile</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/logout">Logout</a>
